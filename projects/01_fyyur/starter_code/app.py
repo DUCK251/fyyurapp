@@ -10,9 +10,10 @@ from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 import logging
 from logging import Formatter, FileHandler
-from flask_wtf import Form
+from flask_wtf import FlaskForm
 from forms import *
 from flask_migrate import Migrate
+import sys
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -230,13 +231,44 @@ def create_venue_form():
 def create_venue_submission():
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
-
+  error = False
+  try:
+    form = VenueForm()
+    if form.validate_on_submit():
+      new_venue = Venue(
+        name = form.name.data,
+        city = form.city.data,
+        state = form.state.data,
+        address = form.address.data,
+        phone = form.phone.data,
+        genres = ','.join(form.genres.data),
+        image_link = form.image_link.data,
+        facebook_link = form.facebook_link.data
+      )
+      db.session.add(new_venue)
+      db.session.commit()
+    else:
+      error = True
+      for fieldName, errorMessages in form.errors.items():
+        for err in errorMessages:
+          print(err, file=sys.stdout)
+  except:
+    error = True
+    db.session.rollback()
+    print(sys.exc_info())
+  finally:
+    db.session.close()
   # on successful db insert, flash success
-  flash('Venue ' + request.form['name'] + ' was successfully listed!')
+  if(error):
+    flash('Error!')
+    return render_template('forms/new_venue.html', form=form)
+  else:
+    flash('Venue ' + request.form['name'] + ' was successfully listed!')
+    return redirect(url_for('index'))
   # TODO: on unsuccessful db insert, flash an error instead.
   # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
   # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
-  return render_template('pages/home.html')
+  return render_template('forms/new_venue.html', form=form)
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
