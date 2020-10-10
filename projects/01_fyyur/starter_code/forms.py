@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask_wtf import Form
+from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField
 from wtforms.validators import DataRequired, AnyOf, URL, ValidationError
 import re
@@ -7,17 +7,17 @@ from app import db, Venue, Artist
 
 def isValidPhone(form, field):
     if not re.search(r'^[0-9\-\+]+$', field.data):
-        raise ValidationError()
+        raise ValidationError(message="Invalid phone number")
 
 def isValidArtistId(form, field):
     if Artist.query.filter_by(field.data).count() == 0:
-        raise ValidationError()
+        raise ValidationError(message="Invalid artist id")
 
 def isValidVenueId(form, field):
     if Venue.query.filter_by(field.data).count() == 0:
-        raise ValidationError()
+        raise ValidationError(message="Invalid venue id")
 
-class ShowForm(Form):
+class ShowForm(FlaskForm):
     artist_id = StringField(
         'artist_id',
         validators=[DataRequired(), isValidArtistId]
@@ -32,7 +32,7 @@ class ShowForm(Form):
         default=datetime.today()
     )
 
-class VenueForm(Form):
+class VenueForm(FlaskForm):
     name = StringField(
         'name', validators=[DataRequired()]
     )
@@ -99,10 +99,10 @@ class VenueForm(Form):
         'address', validators=[DataRequired()]
     )
     phone = StringField(
-        'phone', validators=[DataRequired()]
+        'phone', validators=[DataRequired(), isValidPhone]
     )
     image_link = StringField(
-        'image_link', validators=[URL()]
+        'image_link', validators=[URL(message=("URL is invalid"))]
     )
     genres = SelectMultipleField(
         # TODO implement enum restriction
@@ -130,10 +130,10 @@ class VenueForm(Form):
         ]
     )
     facebook_link = StringField(
-        'facebook_link', validators=[URL()]
+        'facebook_link', validators=[URL(message="URL is invalid")]
     )
 
-class ArtistForm(Form):
+class ArtistForm(FlaskForm):
     name = StringField(
         'name', validators=[DataRequired()]
     )
@@ -198,10 +198,10 @@ class ArtistForm(Form):
     )
     phone = StringField(
         # TODO implement validation logic for state
-        'phone', validators=[isValidPhone]
+        'phone', validators=[DataRequired(), isValidPhone]
     )
     image_link = StringField(
-        'image_link', validators=[URL()]
+        'image_link', validators=[URL(message=("URL is invalid"))]
     )
     genres = SelectMultipleField(
         # TODO implement enum restriction
@@ -230,7 +230,7 @@ class ArtistForm(Form):
     )
     facebook_link = StringField(
         # TODO implement enum restriction
-        'facebook_link', validators=[URL()]
+        'facebook_link', validators=[URL(message=("URL is invalid"))]
     )
 
 # TODO IMPLEMENT NEW ARTIST FORM AND NEW SHOW FORM
