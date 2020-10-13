@@ -4,7 +4,9 @@
 <div class="row">
 	<div class="col-sm-6">
 		<h1 class="monospace">
-			{{ venue.name }}
+			{{ venue.name }} 
+			<button id="deleteBtn" type="button" class="btn btn-warning" data-id="{{ venue.id }}">Delete</button>
+			<button id="editBtn" type="button" class="btn btn-warning" onclick="location.href='/venues/{{venue.id}}/edit';">Edit</button>
 		</h1>
 		<p class="subtitle">
 			ID: {{ venue.id }}
@@ -74,6 +76,5 @@
 		{% endfor %}
 	</div>
 </section>
-
 {% endblock %}
 
